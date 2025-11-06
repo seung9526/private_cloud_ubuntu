@@ -1,0 +1,37 @@
+pipeline {
+    agent any
+
+    environment {
+        DOCKER_IMAGE = "seung9526/private_cloud_app"
+        REGISTRY_CREDENTIAL = "dockerhub-credentials"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/seung9526/private_cloud_ubuntu.git'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    sh 'docker build -t $DOCKER_IMAGE:latest .'
+                }
+            }
+        }
+
+        stage('Push to Registry') {
+            steps {
+                script {
+                    withCredentials([usernamePassword(credentialsId: "${REGISTRY_CREDENTIAL}", usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                        sh '''
+                            echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                            docker push $DOCKER_IMAGE:latest
+                        '''
+                    }
+                }
+            }
+        }
+    }
+}
