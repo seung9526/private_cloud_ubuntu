@@ -4,12 +4,31 @@ pipeline {
     environment {
         DOCKER_IMAGE = "seung9526/private_cloud_app"
         REGISTRY_CREDENTIAL = "dockerhub-credentials"
+        SONAR_HOST_URL = "http://192.168.119.135:9001"
+
     }
 
     stages {
         stage('Checkout') {
             steps {
                 git branch: 'main', url: 'https://github.com/seung9526/private_cloud_ubuntu.git'
+            }
+        }
+
+	stage('SonarQube Analysis') {
+            steps {
+                // Jenkins에 등록한 Secret Text ID = 'tonarqube-token' 사용
+                withCredentials([string(credentialsId: 'tonarqube-token', variable: 'SONAR_TOKEN')]) {
+                    // Docker 방식으로 sonar-scanner 실행 (환경 격리, 설치 불필요)
+                    sh '''
+                      docker run --rm -v "$(pwd)":/usr/src -w /usr/src \
+                        sonarsource/sonar-scanner-cli \
+                        -Dsonar.projectKey=private_cloud_ubuntu \
+                        -Dsonar.sources=. \
+                        -Dsonar.host.url=${SONAR_HOST_URL} \
+                        -Dsonar.login=${SONAR_TOKEN}
+                    '''
+                }
             }
         }
 
@@ -26,12 +45,21 @@ pipeline {
                 script {
                     withCredentials([usernamePassword(credentialsId: "${REGISTRY_CREDENTIAL}", usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                         sh '''
-                            echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+			    echo "🔐 Logging into DockerHub..."
+                            docker login -u "$DOCKER_USER" -p "$DOCKER_PASS"
+                            echo "🚀 Pushing image to DockerHub..."
                             docker push $DOCKER_IMAGE:latest
+                            docker logout
                         '''
                     }
                 }
             }
+        }
+    }
+
+    post {
+        always {
+            archiveArtifacts artifacts: 'trivy-report.txt', allowEmptyArchive: true
         }
     }
 }
