@@ -17,42 +17,37 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 withCredentials([string(credentialsId: 'tonarqube-token', variable: 'SONAR_TOKEN')]) {
-                    sh '''
+                    sh """
                         docker run --rm \
                             --network host \
-                            -v $(pwd):/usr/src \
+                            -v \$(pwd):/usr/src \
                             -w /usr/src \
                             sonarsource/sonar-scanner-cli \
                             -Dsonar.projectKey=private_cloud_ubuntu \
                             -Dsonar.sources=. \
                             -Dsonar.host.url=${SONAR_HOST_URL} \
                             -Dsonar.login=${SONAR_TOKEN}
-                    '''
+                    """
                 }
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                script {
-                    sh 'docker build --network=host -t $DOCKER_IMAGE:latest .'
-                }
+                sh "docker build --network=host -t ${DOCKER_IMAGE}:latest ."
             }
         }
 
-        stage('Push to Registry') {
+        stage('Push to DockerHub') {
             steps {
-                script {
-                    // DockerHub token 방식
-                    withCredentials([string(credentialsId: "${REGISTRY_CREDENTIAL}", variable: 'DOCKER_TOKEN')]) {
-                        sh '''
-                            echo "🔐 Logging into DockerHub with token..."
-                            echo $DOCKER_TOKEN | docker login -u "diamini" --password-stdin
-                            echo "🚀 Pushing image to DockerHub..."
-                            docker push $DOCKER_IMAGE:latest
-                            docker logout
-                        '''
-                    }
+                withCredentials([string(credentialsId: "${REGISTRY_CREDENTIAL}", variable: 'DOCKER_TOKEN')]) {
+                    sh """
+                        echo "🔐 Logging into DockerHub with token..."
+                        echo "$DOCKER_TOKEN" | docker login -u "diamini" --password-stdin
+                        echo "🚀 Pushing image to DockerHub..."
+                        docker push ${DOCKER_IMAGE}:latest
+                        docker logout
+                    """
                 }
             }
         }
