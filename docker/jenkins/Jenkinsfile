@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE = "seung9526/private_cloud_app"
+        DOCKER_IMAGE = "diamini/private_cloud_app"
         REGISTRY_CREDENTIAL = "dockerhub-credentials"
         SONAR_HOST_URL = "http://192.168.119.135:9001"
     }
