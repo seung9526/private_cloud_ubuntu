@@ -15,22 +15,25 @@ pipeline {
             }
         }
 
+	
 	stage('SonarQube Analysis') {
-            steps {
-                // Jenkins에 등록한 Secret Text ID = 'tonarqube-token' 사용
-                withCredentials([string(credentialsId: 'tonarqube-token', variable: 'SONAR_TOKEN')]) {
-                    // Docker 방식으로 sonar-scanner 실행 (환경 격리, 설치 불필요)
-                    sh '''
-                      docker run --rm -v "$(pwd)":/usr/src -w /usr/src \
-                        sonarsource/sonar-scanner-cli \
-                        -Dsonar.projectKey=private_cloud_ubuntu \
-                        -Dsonar.sources=. \
-                        -Dsonar.host.url=${SONAR_HOST_URL} \
-                        -Dsonar.login=${SONAR_TOKEN}
-                    '''
-                }
-            }
-        }
+    		steps {
+        		withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+            sh '''
+                docker run --rm \
+                --network host \   # 👈 추가 (이게 핵심)
+                -v $(pwd):/usr/src \
+                -w /usr/src \
+                sonarsource/sonar-scanner-cli \
+                -Dsonar.projectKey=private_cloud_ubuntu \
+                -Dsonar.sources=. \
+                -Dsonar.host.url=http://192.168.119.135:9001 \
+                -Dsonar.login=$SONAR_TOKEN
+            '''
+        		}
+    		}
+	}
+
 
         stage('Build Docker Image') {
             steps {
