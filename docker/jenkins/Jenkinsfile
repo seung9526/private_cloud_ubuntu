@@ -5,7 +5,6 @@ pipeline {
         DOCKER_IMAGE = "seung9526/private_cloud_app"
         REGISTRY_CREDENTIAL = "dockerhub-credentials"
         SONAR_HOST_URL = "http://192.168.119.135:9001"
-
     }
 
     stages {
@@ -15,25 +14,23 @@ pipeline {
             }
         }
 
-	
-	stage('SonarQube Analysis') {
-    		steps {
-        		withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
-            sh '''
-                docker run --rm \
-                --network host \   
-                -v $(pwd):/usr/src \
-                -w /usr/src \
-                sonarsource/sonar-scanner-cli \
-                -Dsonar.projectKey=private_cloud_ubuntu \
-                -Dsonar.sources=. \
-                -Dsonar.host.url=http://192.168.119.135:9001 \
-                -Dsonar.login=$SONAR_TOKEN
-            '''
-        		}
-    		}
-	}
-
+        stage('SonarQube Analysis') {
+            steps {
+                withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+                    sh '''
+                        docker run --rm \
+                            --network host \
+                            -v $(pwd):/usr/src \
+                            -w /usr/src \
+                            sonarsource/sonar-scanner-cli \
+                            -Dsonar.projectKey=private_cloud_ubuntu \
+                            -Dsonar.sources=. \
+                            -Dsonar.host.url=${SONAR_HOST_URL} \
+                            -Dsonar.login=${SONAR_TOKEN}
+                    '''
+                }
+            }
+        }
 
         stage('Build Docker Image') {
             steps {
@@ -48,7 +45,7 @@ pipeline {
                 script {
                     withCredentials([usernamePassword(credentialsId: "${REGISTRY_CREDENTIAL}", usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                         sh '''
-			    echo "🔐 Logging into DockerHub..."
+                            echo "🔐 Logging into DockerHub..."
                             docker login -u "$DOCKER_USER" -p "$DOCKER_PASS"
                             echo "🚀 Pushing image to DockerHub..."
                             docker push $DOCKER_IMAGE:latest
