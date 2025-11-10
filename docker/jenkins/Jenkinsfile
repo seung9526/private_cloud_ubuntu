@@ -21,7 +21,7 @@ pipeline {
         		withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
             sh '''
                 docker run --rm \
-                --network host \   # 👈 추가 (이게 핵심)
+                --network host \   
                 -v $(pwd):/usr/src \
                 -w /usr/src \
                 sonarsource/sonar-scanner-cli \
