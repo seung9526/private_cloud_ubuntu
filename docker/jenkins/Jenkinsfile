@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         DOCKER_IMAGE = "diamini/private_cloud_app"
-        REGISTRY_CREDENTIAL = "dockerhub-credentials"
+        REGISTRY_CREDENTIAL = "dockerhub-token"   // Secret text 형태로 DockerHub token 등록
         SONAR_HOST_URL = "http://192.168.119.135:9001"
     }
 
@@ -43,12 +43,11 @@ pipeline {
         stage('Push to Registry') {
             steps {
                 script {
-                    withCredentials([usernamePassword(credentialsId: "${REGISTRY_CREDENTIAL}", 
-                                                     usernameVariable: 'DOCKER_USER', 
-                                                     passwordVariable: 'DOCKER_PASS')]) {
+                    // DockerHub token 방식
+                    withCredentials([string(credentialsId: "${REGISTRY_CREDENTIAL}", variable: 'DOCKER_TOKEN')]) {
                         sh '''
-                            echo "🔐 Logging into DockerHub..."
-                            echo $DOCKER_PASS | docker login -u "$DOCKER_USER" --password-stdin
+                            echo "🔐 Logging into DockerHub with token..."
+                            echo $DOCKER_TOKEN | docker login -u "diamini" --password-stdin
                             echo "🚀 Pushing image to DockerHub..."
                             docker push $DOCKER_IMAGE:latest
                             docker logout
@@ -65,4 +64,3 @@ pipeline {
         }
     }
 }
-
