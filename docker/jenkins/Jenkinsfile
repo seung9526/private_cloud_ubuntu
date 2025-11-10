@@ -40,38 +40,15 @@ pipeline {
             }
         }
 
-        stage('Ensure DockerHub Repo') {
-            steps {
-                script {
-                    withCredentials([usernamePassword(credentialsId: "${REGISTRY_CREDENTIAL}", usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                        sh '''
-                            echo "🔍 Checking if DockerHub repo exists..."
-                            RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" -u "$DOCKER_USER:$DOCKER_PASS" \
-                                https://hub.docker.com/v2/repositories/$DOCKER_USER/private_cloud_app/)
-
-                            if [ "$RESPONSE" -eq 404 ]; then
-                                echo "📦 Repo not found. Creating new repo..."
-                                curl -s -X POST -H "Content-Type: application/json" \
-                                    -u "$DOCKER_USER:$DOCKER_PASS" \
-                                    -d '{"name": "private_cloud_app", "is_private": true}' \
-                                    https://hub.docker.com/v2/repositories/
-                                echo "✅ Repo created."
-                            else
-                                echo "✅ Repo already exists."
-                            fi
-                        '''
-                    }
-                }
-            }
-        }
-
         stage('Push to Registry') {
             steps {
                 script {
-                    withCredentials([usernamePassword(credentialsId: "${REGISTRY_CREDENTIAL}", usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    withCredentials([usernamePassword(credentialsId: "${REGISTRY_CREDENTIAL}", 
+                                                     usernameVariable: 'DOCKER_USER', 
+                                                     passwordVariable: 'DOCKER_PASS')]) {
                         sh '''
                             echo "🔐 Logging into DockerHub..."
-                            docker login -u "$DOCKER_USER" -p "$DOCKER_PASS"
+                            echo $DOCKER_PASS | docker login -u "$DOCKER_USER" --password-stdin
                             echo "🚀 Pushing image to DockerHub..."
                             docker push $DOCKER_IMAGE:latest
                             docker logout
