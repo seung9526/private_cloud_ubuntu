@@ -5,6 +5,8 @@ pipeline {
         DOCKER_IMAGE = "diamini/private_cloud_app"
         REGISTRY_CREDENTIAL = "dockerhub-token"   // Secret text 형태로 DockerHub token 등록
         SONAR_HOST_URL = "http://192.168.119.135:9001"
+        SSH_CREDENTIAL_ID = "ssh-test2"           // Jenkins에 등록한 SSH key credentials
+        DEPLOY_SERVER = "192.168.119.136"        // 배포 서버 IP
     }
 
     stages {
@@ -47,6 +49,24 @@ pipeline {
                         echo "🚀 Pushing image to DockerHub..."
                         docker push ${DOCKER_IMAGE}:latest
                         docker logout
+                    """
+                }
+            }
+        }
+
+        stage('Deploy to Remote Server') {
+            steps {
+                sshagent(credentials: ["${SSH_CREDENTIAL_ID}"]) {
+                    sh """
+                        ssh -o StrictHostKeyChecking=no test2@${DEPLOY_SERVER} '
+                            echo "🛠 Stopping existing container..."
+                            docker stop private_cloud_app || true
+                            docker rm private_cloud_app || true
+                            echo "📦 Pulling latest image..."
+                            docker pull ${DOCKER_IMAGE}:latest
+                            echo "🚀 Running new container..."
+                            docker run -d --name private_cloud_app -p 8080:8080 ${DOCKER_IMAGE}:latest
+                        '
                     """
                 }
             }
