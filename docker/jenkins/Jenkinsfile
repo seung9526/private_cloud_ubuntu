@@ -1,12 +1,14 @@
 pipeline {
+    // 최상단 agent any는 유지하되, Docker 명령이 필요한 스테이지는 별도 agent를 사용
     agent any
 
     environment {
         DOCKER_IMAGE = "diamini/private_cloud_app"
-        REGISTRY_CREDENTIAL = "dockerhub-token"   // Secret text 형태로 DockerHub token 등록
+        REGISTRY_CREDENTIAL = "dockerhub-token"    // Secret text 형태로 DockerHub token 등록
         SONAR_HOST_URL = "http://192.168.119.135:9001"
-        SSH_CREDENTIAL_ID = "ssh-test2"           // Jenkins에 등록한 SSH key credentials
-        DEPLOY_SERVER = "192.168.119.136"        // 배포 서버 IP
+        SSH_CREDENTIAL_ID = "ssh-test2"            // Jenkins에 등록한 SSH key credentials
+        DEPLOY_SERVER = "192.168.119.136"          // 배포 서버 IP
+        DOCKER_NETWORK = "monitoring"              // docker-compose.yml에 정의된 네트워크 이름
     }
 
     stages {
@@ -17,17 +19,26 @@ pipeline {
         }
 
         stage('SonarQube Analysis') {
+            // Docker CLI가 설치된 에이전트 사용 (Docker-in-Docker 방식)
+            agent {
+                docker {
+                    image 'docker:latest' 
+                    // 호스트의 Docker 소켓과 네트워크를 마운트하여 Docker 명령을 실행할 수 있도록 함
+                    args "-v /var/run/docker.sock:/var/run/docker.sock --network ${DOCKER_NETWORK}"
+                }
+            }
             steps {
                 withCredentials([string(credentialsId: 'tonarqube-token', variable: 'SONAR_TOKEN')]) {
                     sh """
-                        docker run --rm \
-                            --network host \
-                            -v \$(pwd):/usr/src \
-                            -w /usr/src \
-                            sonarsource/sonar-scanner-cli \
-                            -Dsonar.projectKey=private_cloud_ubuntu \
-                            -Dsonar.sources=. \
-                            -Dsonar.host.url=${SONAR_HOST_URL} \
+                        echo "Starting SonarQube Analysis using Docker CLI..."
+                        docker run --rm \\
+                            --network host \\
+                            -v \$(pwd):/usr/src \\
+                            -w /usr/src \\
+                            sonarsource/sonar-scanner-cli \\
+                            -Dsonar.projectKey=private_cloud_ubuntu \\
+                            -Dsonar.sources=. \\
+                            -Dsonar.host.url=${SONAR_HOST_URL} \\
                             -Dsonar.login=${SONAR_TOKEN}
                     """
                 }
@@ -35,12 +46,26 @@ pipeline {
         }
 
         stage('Build Docker Image') {
+            // Docker CLI가 설치된 에이전트 사용
+            agent {
+                docker {
+                    image 'docker:latest'
+                    args "-v /var/run/docker.sock:/var/run/docker.sock --network ${DOCKER_NETWORK}"
+                }
+            }
             steps {
-                sh "docker build --network=host -t ${DOCKER_IMAGE}:latest ."
+                sh "docker build --network=${DOCKER_NETWORK} -t ${DOCKER_IMAGE}:latest ."
             }
         }
 
         stage('Push to DockerHub') {
+            // Docker CLI가 설치된 에이전트 사용
+            agent {
+                docker {
+                    image 'docker:latest'
+                    args "-v /var/run/docker.sock:/var/run/docker.sock --network ${DOCKER_NETWORK}"
+                }
+            }
             steps {
                 withCredentials([string(credentialsId: "${REGISTRY_CREDENTIAL}", variable: 'DOCKER_TOKEN')]) {
                     sh """
@@ -55,6 +80,7 @@ pipeline {
         }
 
         stage('Deploy to Remote Server') {
+            agent any // SSH 접속만 하므로 메인 에이전트 사용
             steps {
                 sshagent(credentials: ["${SSH_CREDENTIAL_ID}"]) {
                     sh """
