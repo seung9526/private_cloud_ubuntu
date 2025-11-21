@@ -8,7 +8,7 @@ pipeline {
         SONAR_HOST_URL = "http://192.168.119.135:9001"
         SSH_CREDENTIAL_ID = "ssh-test2"            // Jenkins에 등록한 SSH key credentials
         DEPLOY_SERVER = "192.168.119.136"          // 배포 서버 IP
-        DOCKER_NETWORK = "docker_monitoring"              // docker-compose.yml에 정의된 네트워크 이름
+        DOCKER_NETWORK = "docker_monitoring"       // docker-compose.yml에 정의된 네트워크 이름 (언더바 확인!)
     }
 
     stages {
@@ -22,8 +22,8 @@ pipeline {
             // Docker CLI가 설치된 에이전트 사용 (Docker-in-Docker 방식)
             agent {
                 docker {
-                    image 'docker:latest' 
-                    // 호스트의 Docker 소켓과 네트워크를 마운트하여 Docker 명령을 실행할 수 있도록 함
+                    image 'docker:latest'
+                    // SonarQube 및 다른 서비스에 접근하기 위해 사용자 정의 네트워크를 에이전트에 연결
                     args "-v /var/run/docker.sock:/var/run/docker.sock --network ${DOCKER_NETWORK}"
                 }
             }
@@ -32,7 +32,7 @@ pipeline {
                     sh """
                         echo "Starting SonarQube Analysis using Docker CLI..."
                         docker run --rm \\
-                            --network host \\
+                            --network ${DOCKER_NETWORK} \\  // Sonar Scanner가 SonarQube에 접근하도록 네트워크 수정
                             -v \$(pwd):/usr/src \\
                             -w /usr/src \\
                             sonarsource/sonar-scanner-cli \\
@@ -50,11 +50,13 @@ pipeline {
             agent {
                 docker {
                     image 'docker:latest'
+                    // 에이전트는 네트워크에 연결된 상태를 유지
                     args "-v /var/run/docker.sock:/var/run/docker.sock --network ${DOCKER_NETWORK}"
                 }
             }
             steps {
-                sh "docker build --network=${DOCKER_NETWORK} -t ${DOCKER_IMAGE}:latest ."
+                // BuildKit 오류 방지를 위해 --network 옵션 제거
+                sh "docker build -t ${DOCKER_IMAGE}:latest ."
             }
         }
 
