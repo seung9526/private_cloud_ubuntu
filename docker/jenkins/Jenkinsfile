@@ -8,7 +8,7 @@ pipeline {
         SONAR_HOST_URL = "http://192.168.119.135:9001"
         SSH_CREDENTIAL_ID = "ssh-test2"            // Jenkins에 등록한 SSH key credentials
         DEPLOY_SERVER = "192.168.119.136"          // 배포 서버 IP
-        DOCKER_NETWORK = "docker-monitoring"              // docker-compose.yml에 정의된 네트워크 이름
+        DOCKER_NETWORK = "docker_monitoring"              // docker-compose.yml에 정의된 네트워크 이름
     }
 
     stages {
