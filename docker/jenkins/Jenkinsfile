@@ -8,7 +8,8 @@ pipeline {
         SONAR_HOST_URL = "http://192.168.119.135:9001"
         SSH_CREDENTIAL_ID = "ssh-test2"            // Jenkins에 등록한 SSH key credentials
         DEPLOY_SERVER = "192.168.119.136"          // 배포 서버 IP
-        DOCKER_NETWORK = "docker_monitoring"       // docker-compose.yml에 정의된 네트워크 이름 (언더바 확인!)
+        DOCKER_NETWORK = "docker_monitoring"       // docker-compose.yml에 정의된 네트워크
+        APP_PORT = "8088"                           // Flask 앱 포트
     }
 
     stages {
@@ -91,7 +92,11 @@ pipeline {
                             echo "📦 Pulling latest image..."
                             docker pull ${DOCKER_IMAGE}:latest
                             echo "🚀 Running new container..."
-                            docker run -d --name private_cloud_app -p 8080:8080 ${DOCKER_IMAGE}:latest
+                            docker run -d --name private_cloud_app -p ${APP_PORT}:${APP_PORT} ${DOCKER_IMAGE}:latest
+                            echo "⏳ Waiting 5 seconds for app to start..."
+                            sleep 5
+                            echo "🔍 Checking health..."
+                            curl -f http://localhost:${APP_PORT}/health || echo "Health check failed"
                         '
                     """
                 }
@@ -105,3 +110,4 @@ pipeline {
         }
     }
 }
+
