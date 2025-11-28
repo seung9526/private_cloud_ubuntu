@@ -20,8 +20,10 @@ yaml
 ### ⚙️ 현재 진행 상태
 - [x] Ubuntu Server 설치 및 초기 세팅
 - [x] GitHub 레포 생성 및 연결
-- [ ] Docker 설치 스크립트 작성
-- [ ] Nginx 컨테이너 테스트
-- [ ] Ansible 자동화 구성
-- [ ] Grafana 모니터링 구축
+- [x] Docker 설치 및 컨테이너 실행 확인
+- [x] Nginx 컨테이너 테스트 완료
+- [x] Jenkins 배포 파이프라인 구성 완료
+- [x] Grafana 모니터링 컨테이너 실행
+- [ ] Ansible 자동화 구성 (추가 플레이북 작성 필요)
+- [ ] 외부 접속 및 네트워크 최적화 (NAT/포트포워딩 확인)
 
