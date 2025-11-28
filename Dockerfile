@@ -3,7 +3,7 @@ FROM python:3.10-slim
 WORKDIR /app
 
 # curl 설치 (healthcheck 때문에 필수)
-RUN apt-get update && apt-get install -y curl
+RUN apt-get update && apt-get install -y net-tools iproute2 curl
 
 COPY app/requirements.txt .
 RUN pip install -r requirements.txt
