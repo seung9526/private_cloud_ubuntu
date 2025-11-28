@@ -1,6 +1,9 @@
 version: '3.9'
 
 services:
+  # ------------------------------------
+  # 1. Web Proxy (Nginx)
+  # ------------------------------------
   nginx:
     image: nginx:latest
     container_name: nginx
@@ -13,6 +16,9 @@ services:
     networks:
       - monitoring
 
+  # ------------------------------------
+  # 2. Docker GUI (Portainer)
+  # ------------------------------------
   portainer:
     image: portainer/portainer-ce:latest
     container_name: portainer
@@ -25,6 +31,9 @@ services:
     networks:
       - monitoring
 
+  # ------------------------------------
+  # 3. Monitoring (Prometheus)
+  # ------------------------------------
   prometheus:
     image: prom/prometheus:latest
     container_name: prometheus
@@ -36,6 +45,9 @@ services:
     networks:
       - monitoring
 
+  # ------------------------------------
+  # 4. Visualization (Grafana)
+  # ------------------------------------
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
@@ -44,11 +56,94 @@ services:
       - "3000:3000"
     depends_on:
       - prometheus
+    volumes:
+      - grafana_data:/var/lib/grafana
     networks:
       - monitoring
 
+  # ------------------------------------
+  # 5. CI/CD (Jenkins)
+  # ------------------------------------
+  jenkins:
+#    image: jenkins/jenkins:lts
+    build:
+      context: ./jenkins
+      dockerfile: Dockerfile
+    container_name: jenkins
+    restart: always
+    user: root 
+    ports:
+      - "8080:8080" 
+      - "50000:50000" 
+    volumes:
+      - ./jenkins/jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock 
+    networks:
+      - monitoring
+  
+  # ------------------------------------
+  # 6. SonarQube DB (PostgreSQL) - New DB Service
+  # ------------------------------------
+  postgresql:
+    image: postgres:latest
+    container_name: sonarqube_db
+    restart: always
+    environment:
+      POSTGRES_USER: sonar
+      POSTGRES_DB: sonarqube_db
+      # 비밀번호를 Secret 파일을 통해 전달
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password 
+    volumes:
+      - postgresql_data:/var/lib/postgresql
+    networks:
+      - monitoring
+    secrets: 
+      - db_password
+
+  # ------------------------------------
+  # 7. Quality Analysis (SonarQube) - Updated to use PostgreSQL
+  # ------------------------------------
+  sonarqube:
+    image: sonarqube:lts-community
+    container_name: sonarqube
+    restart: always
+    ports:
+      - "9001:9000"
+    volumes:
+      - ./sonarqube/conf:/opt/sonarqube/conf
+      - ./sonarqube/data:/opt/sonarqube/data
+      - ./sonarqube/extensions:/opt/sonarqube/extensions
+      - ./sonarqube/logs:/opt/sonarqube/logs
+    depends_on:
+      - postgresql # DB가 먼저 실행되도록 종속성 추가
+    environment:
+      # JDBC URL을 PostgreSQL 컨테이너로 설정
+      - SONARQUBE_JDBC_URL=jdbc:postgresql://postgresql:5432/sonarqube_db
+      - SONARQUBE_JDBC_USERNAME=sonar
+      # 비밀번호를 Secret 파일을 통해 전달
+      - SONARQUBE_JDBC_PASSWORD_FILE=/run/secrets/db_password 
+    networks:
+      - monitoring
+    secrets:
+      - db_password
+    # SonarQube가 사용하는 Elasticsearch를 위해 VM에 설정이 필요할 수 있음.
+    # vm.max_map_count 설정 관련해서는 별도 확인 필요
+
+# ------------------------------------
+# Networks and Volumes
+# ------------------------------------
 networks:
   monitoring:
 
 volumes:
   portainer_data:
+  grafana_data:
+  postgresql_data: # PostgreSQL 데이터 볼륨 추가
+
+# ------------------------------------
+# Secrets Definitions
+# ------------------------------------
+secrets:
+  db_password:
+    # 이 파일은 반드시 /home/test1/secrets/ 경로에 미리 만들어져 있어야 합니다.
+    file: /home/test1/secrets/sonar_db_password.txt
