@@ -1,0 +1,14 @@
+---
+- name: Pull private_cloud_app image
+  community.docker.docker_image:
+    name: diamini/private_cloud_app
+    source: pull
+
+- name: Run private_cloud_app container
+  community.docker.docker_container:
+    name: private_cloud_app
+    image: diamini/private_cloud_app
+    state: started
+    restart_policy: unless-stopped
+    ports:
+      - "8088:8088"

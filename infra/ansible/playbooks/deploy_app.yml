@@ -1,0 +1,5 @@
+---
+- hosts: private_cloud
+  become: yes
+  roles:
+    - docker_app
