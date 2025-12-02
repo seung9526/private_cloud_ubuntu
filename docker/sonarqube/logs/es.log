@@ -61,3 +61,12 @@
 2025.12.01 04:50:31 INFO  es[][o.e.n.Node] started
 2025.12.01 04:50:31 INFO  es[][o.e.g.GatewayService] recovered [7] indices into cluster_state
 2025.12.01 04:50:32 INFO  es[][o.e.c.r.a.AllocationService] Cluster health status changed from [RED] to [GREEN] (reason: [shards started [[metadatas][0]]]).
+2025.12.01 09:37:52 WARN  es[][o.e.t.ThreadPool] timer thread slept for [5.7s/5770ms] on absolute clock which is above the warn threshold of [5000ms]
+2025.12.01 11:13:30 WARN  es[][o.e.t.ThreadPool] timer thread slept for [5.7s/5770069433ns] on relative clock which is above the warn threshold of [5000ms]
+2025.12.01 11:13:31 WARN  es[][o.e.t.ThreadPool] timer thread slept for [1.5h/5738855ms] on absolute clock which is above the warn threshold of [5000ms]
+2025.12.01 11:13:37 WARN  es[][o.e.t.ThreadPool] absolute clock went backwards by [323ms/323ms] while timer thread was sleeping
+2025.12.01 22:40:45 WARN  es[][o.e.t.ThreadPool] timer thread slept for [8.2h/29768648ms] on absolute clock which is above the warn threshold of [5000ms]
+2025.12.01 22:40:59 WARN  es[][o.e.t.ThreadPool] timer thread slept for [8.1s/8112ms] on absolute clock which is above the warn threshold of [5000ms]
+2025.12.01 22:40:59 WARN  es[][o.e.t.ThreadPool] timer thread slept for [8.1s/8112238959ns] on relative clock which is above the warn threshold of [5000ms]
+2025.12.01 23:41:27 WARN  es[][o.e.t.ThreadPool] timer thread slept for [1h/3628517ms] on absolute clock which is above the warn threshold of [5000ms]
+2025.12.01 23:41:33 WARN  es[][o.e.t.ThreadPool] absolute clock went backwards by [283ms/283ms] while timer thread was sleeping
