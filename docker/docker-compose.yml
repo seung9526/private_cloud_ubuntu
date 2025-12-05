@@ -147,3 +147,17 @@ secrets:
   db_password:
     # 이 파일은 반드시 /home/test1/secrets/ 경로에 미리 만들어져 있어야 합니다.
     file: /home/test1/secrets/sonar_db_password.txt
+
+# ------------------------------------
+# Alertmanager (Prometheus Alerts)
+# ------------------------------------
+alertmanager:
+  image: prom/alertmanager:latest
+  container_name: alertmanager
+  restart: always
+  ports:
+    - "9093:9093"
+  volumes:
+    - ./alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+  networks:
+    - monitoring
