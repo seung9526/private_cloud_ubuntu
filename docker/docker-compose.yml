@@ -65,24 +65,23 @@ services:
   # 5. CI/CD (Jenkins)
   # ------------------------------------
   jenkins:
-#    image: jenkins/jenkins:lts
     build:
       context: ./jenkins
       dockerfile: Dockerfile
     container_name: jenkins
     restart: always
-    user: root 
+    user: root
     ports:
-      - "8080:8080" 
-      - "50000:50000" 
+      - "8080:8080"
+      - "50000:50000"
     volumes:
       - ./jenkins/jenkins_home:/var/jenkins_home
-      - /var/run/docker.sock:/var/run/docker.sock 
+      - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - monitoring
-  
+
   # ------------------------------------
-  # 6. SonarQube DB (PostgreSQL) - New DB Service
+  # 6. SonarQube DB (PostgreSQL)
   # ------------------------------------
   postgresql:
     image: postgres:latest
@@ -91,17 +90,16 @@ services:
     environment:
       POSTGRES_USER: sonar
       POSTGRES_DB: sonarqube_db
-      # 비밀번호를 Secret 파일을 통해 전달
-      POSTGRES_PASSWORD_FILE: /run/secrets/db_password 
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
     volumes:
       - postgresql_data:/var/lib/postgresql
     networks:
       - monitoring
-    secrets: 
+    secrets:
       - db_password
 
   # ------------------------------------
-  # 7. Quality Analysis (SonarQube) - Updated to use PostgreSQL
+  # 7. Quality Analysis (SonarQube)
   # ------------------------------------
   sonarqube:
     image: sonarqube:lts-community
@@ -115,19 +113,29 @@ services:
       - ./sonarqube/extensions:/opt/sonarqube/extensions
       - ./sonarqube/logs:/opt/sonarqube/logs
     depends_on:
-      - postgresql # DB가 먼저 실행되도록 종속성 추가
+      - postgresql
     environment:
-      # JDBC URL을 PostgreSQL 컨테이너로 설정
       - SONARQUBE_JDBC_URL=jdbc:postgresql://postgresql:5432/sonarqube_db
       - SONARQUBE_JDBC_USERNAME=sonar
-      # 비밀번호를 Secret 파일을 통해 전달
-      - SONARQUBE_JDBC_PASSWORD_FILE=/run/secrets/db_password 
+      - SONARQUBE_JDBC_PASSWORD_FILE=/run/secrets/db_password
     networks:
       - monitoring
     secrets:
       - db_password
-    # SonarQube가 사용하는 Elasticsearch를 위해 VM에 설정이 필요할 수 있음.
-    # vm.max_map_count 설정 관련해서는 별도 확인 필요
+
+  # ------------------------------------
+  # 8. Alertmanager (Prometheus Alerts)
+  # ------------------------------------
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: alertmanager
+    restart: always
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+    networks:
+      - monitoring
 
 # ------------------------------------
 # Networks and Volumes
@@ -138,26 +146,11 @@ networks:
 volumes:
   portainer_data:
   grafana_data:
-  postgresql_data: # PostgreSQL 데이터 볼륨 추가
+  postgresql_data:
 
 # ------------------------------------
 # Secrets Definitions
 # ------------------------------------
 secrets:
   db_password:
-    # 이 파일은 반드시 /home/test1/secrets/ 경로에 미리 만들어져 있어야 합니다.
     file: /home/test1/secrets/sonar_db_password.txt
-
-# ------------------------------------
-# Alertmanager (Prometheus Alerts)
-# ------------------------------------
-alertmanager:
-  image: prom/alertmanager:latest
-  container_name: alertmanager
-  restart: always
-  ports:
-    - "9093:9093"
-  volumes:
-    - ./alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml
-  networks:
-    - monitoring
