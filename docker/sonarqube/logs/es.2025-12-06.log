@@ -1,0 +1,5 @@
+2025.12.06 12:46:40 WARN  es[][o.e.t.ThreadPool] timer thread slept for [1.1d/100469512ms] on absolute clock which is above the warn threshold of [5000ms]
+2025.12.06 12:46:41 WARN  es[][o.e.t.ThreadPool] timer thread slept for [7.7s/7767405649ns] on relative clock which is above the warn threshold of [5000ms]
+2025.12.06 12:46:41 WARN  es[][o.e.t.ThreadPool] execution of [ReschedulingRunnable{runnable=org.elasticsearch.monitor.jvm.JvmGcMonitorService$1@171a9866, interval=1s}] took [7767ms] which is above the warn threshold of [5000ms]
+2025.12.06 15:43:48 WARN  es[][o.e.t.ThreadPool] timer thread slept for [5.7s/5763ms] on absolute clock which is above the warn threshold of [5000ms]
+2025.12.06 15:43:48 WARN  es[][o.e.t.ThreadPool] timer thread slept for [5.7s/5762102156ns] on relative clock which is above the warn threshold of [5000ms]

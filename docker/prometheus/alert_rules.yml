@@ -1,0 +1,32 @@
+groups:
+  - name: flask_alerts
+    rules:
+      - alert: HighLatency95
+        expr: histogram_quantile(
+                0.95,
+                sum(rate(flask_http_request_duration_seconds_bucket[1m])) by (le, status)
+              ) > 1
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "95% Latency High"
+          description: "Latency p95 > 1s (status={{ $labels.status }})"
+
+      - alert: HighErrorRate
+        expr: sum(rate(flask_http_request_exceptions_total[1m])) / sum(rate(flask_http_request_total[1m])) > 0.1
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "HTTP 500 Error Rate High"
+          description: "Error rate > 10% during the last 1 minute"
+
+      - alert: FlaskServiceDown
+        expr: up{job="flask_app"} == 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "Flask Service Down"
+          description: "Flask metrics not scraped (service DOWN)"
