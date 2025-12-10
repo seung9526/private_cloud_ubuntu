@@ -10,7 +10,7 @@ def health():
 
 @app.route('/')
 def index():
-    sleep(1)
+#    sleep(1)
     return "Service is running!"
 
 if __name__ == "__main__":
