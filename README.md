@@ -24,6 +24,9 @@ yaml
 - [x] Nginx 컨테이너 테스트 완료
 - [x] Jenkins 배포 파이프라인 구성 완료
 - [x] Grafana 모니터링 컨테이너 실행
+- [x] KVM/Libvirt 기반 VM 프로비저닝 자동화 (Terraform)
+- [x] Cloud-init을 이용한 초기 사용자 및 SSH Key 주입 자동화
+- [x] Ansible 인벤토리 구성 및 대상 VM 핑 테스트(Ping-Pong) 성공
 - [ ] Ansible 자동화 구성 (추가 플레이북 작성 필요)
 - [ ] 외부 접속 및 네트워크 최적화 (NAT/포트포워딩 확인)
 
