@@ -13,3 +13,15 @@ docker/jenkins/jenkins_home/
 docker/sonarqube/data/
 docker/sonarqube/logs/
 docker/sonarqube/extensions/
+
+# Ansible 관련
+*.retry
+# Vault 비밀번호 자체는 올려도 되지만(암호화되어 있음), 
+# 비밀번호를 적어둔 텍스트 파일이 있다면 반드시 제외해야 합니다.
+
+# 시스템/보안 관련
+.ssh/
+known_hosts
+*.pem
+*.key
+*.pub

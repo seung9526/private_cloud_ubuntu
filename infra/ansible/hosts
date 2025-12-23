@@ -1,0 +1,6 @@
+[private_cloud]
+192.168.119.136 ansible_user=test2 ansible_ssh_pass=test2 ansible_become_pass=test2
+
+[new_vms]
+192.168.122.247 ansible_user=ubuntu
+
