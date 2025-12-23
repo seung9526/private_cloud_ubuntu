@@ -30,8 +30,6 @@ services:
       - "5000"
     networks:
       - monitoring
-    deploy:
-      replicas: 2
 
   # ------------------------------------
   # 3. Docker GUI (Portainer)

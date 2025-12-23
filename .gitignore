@@ -1,2 +1,15 @@
 # Jenkins runtime files
 docker/jenkins/jenkins_home/
+
+# --- Terraform ---
+**/.terraform/
+**/*.tfstate
+**/*.tfstate.*
+**/.terraform.lock.hcl
+**/terraform.tfvars
+**/null
+
+# --- Sonarqube ---
+docker/sonarqube/data/
+docker/sonarqube/logs/
+docker/sonarqube/extensions/
