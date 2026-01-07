@@ -25,3 +25,25 @@ known_hosts
 *.pem
 *.key
 *.pub
+
+# --- Docker & System ---
+# Docker Compose 실행 시 생성되는 임시 파일들
+.env
+.DS_Store
+Thumbs.db
+
+# --- Nginx Proxy Manager ---
+# 실제 운영 데이터와 인증서는 로컬에만 보관하고 설계도만 공유합니다.
+docker/nginx-proxy-manager/data/
+docker/nginx-proxy-manager/letsencrypt/
+docker/npm/data/
+docker/npm/letsencrypt/
+
+# --- Python (Flask API) ---
+# 파이프라인 작동 시 생성되는 파이썬 컴파일 파일 및 가상환경
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
