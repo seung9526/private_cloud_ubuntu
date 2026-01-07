@@ -1,6 +1,22 @@
 version: '3.9'
 
 services:
+  # ------------------------------------
+  # 0. Nginx Proxy Manager (Gateway)
+  # ------------------------------------
+  nginx-proxy-manager:
+    image: 'jc21/nginx-proxy-manager:latest'
+    container_name: nginx-proxy-manager
+    restart: always
+    ports:
+      - "80:80"   # HTTP 트래픽 입구
+      - "81:81"   # NPM 관리 도구 UI
+      - "443:443" # HTTPS 트래픽 입구
+    volumes:
+      - ./npm/data:/data
+      - ./npm/letsencrypt:/etc/letsencrypt
+    networks:
+      - monitoring  # 기존 서비스들과 통신하기 위해 동일한 네트워크 사용
 
   # ------------------------------------
   # 1. Web Proxy + Load Balancer (Nginx)
@@ -23,14 +39,15 @@ services:
   # 2. Application (Flask API) + Scaling
   # ------------------------------------
   flask-api:
-    build: ./app
+    build:
+      context: ..
+      dockerfile: Dockerfile
     container_name: flask-api
     restart: always
     expose:
-      - "5000"
+      - "8088"
     networks:
       - monitoring
-
   # ------------------------------------
   # 3. Docker GUI (Portainer)
   # ------------------------------------
